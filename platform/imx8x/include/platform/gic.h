@@ -20,7 +20,13 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#pragma once
+#ifndef __PLATFORM_GIC_H
+#define __PLATFORM_GIC_H
 
-#define DEBUG_UART 1
+#include <platform/imx8x.h>
 
+#define GICBASE(n)  (CPUPRIV_BASE)
+#define GICC_OFFSET (0x0100)
+#define GICD_OFFSET (0x1000)
+
+#endif

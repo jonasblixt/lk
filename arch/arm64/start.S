@@ -61,6 +61,7 @@ arm_reset:
     cbnz    cpuid, .Lmmu_enable_secondary
 #endif
 
+
     mov     tmp, #0
 
     /* walk through all the entries in the translation table, setting them up */
@@ -101,6 +102,11 @@ arm_reset:
     ldr     attr, =MMU_INITIAL_MAP_DEVICE
     b       .Lmem_type_done
 .Lnot_device:
+
+/* REACHED */
+    mov w10,#0x55
+    ldr x11,=0x5A06001c
+    str w10, [x11]
 
 /* Determine the segment in which the memory resides and set appropriate
  *  attributes.  In order to handle offset kernels, the following rules are
@@ -248,7 +254,7 @@ arm_reset:
     b       .Lmap_range_one_table_loop
 
 .Linitial_mapping_done:
-
+/* NOT REACHED */
     /* Prepare tt_trampoline page table */
 
     /* Zero tt_trampoline translation tables */
@@ -282,6 +288,7 @@ arm_reset:
 .Lpage_tables_ready:
 #endif
 
+    bl  lk_main
     /* set up the mmu */
 
     /* Invalidate TLB */
@@ -356,7 +363,6 @@ arm_reset:
     cbnz    tmp2, .L__bss_loop
 .L__bss_loop_done:
 
-    bl  lk_main
     b   .
 
 #if WITH_SMP
