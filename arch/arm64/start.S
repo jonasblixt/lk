@@ -103,11 +103,6 @@ arm_reset:
     b       .Lmem_type_done
 .Lnot_device:
 
-/* REACHED */
-    mov w10,#0x55
-    ldr x11,=0x5A06001c
-    str w10, [x11]
-
 /* Determine the segment in which the memory resides and set appropriate
  *  attributes.  In order to handle offset kernels, the following rules are
  *  implemented below:
@@ -288,7 +283,11 @@ arm_reset:
 .Lpage_tables_ready:
 #endif
 
-    bl  lk_main
+/*
+    mov w10, #'B'
+    ldr x11,=0x5A06001c
+    str w10,[x11]
+*/
     /* set up the mmu */
 
     /* Invalidate TLB */
@@ -363,6 +362,7 @@ arm_reset:
     cbnz    tmp2, .L__bss_loop
 .L__bss_loop_done:
 
+    bl  lk_main
     b   .
 
 #if WITH_SMP

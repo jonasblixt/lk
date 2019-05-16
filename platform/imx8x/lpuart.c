@@ -12,7 +12,7 @@
 uint32_t lpuart_init(void)
 {
     uint32_t tmp;
-    uint32_t base = 0x5A060000;
+    uint64_t base = 0xFFFFFFFf5A060000;
 	tmp = readl(base + CTRL);
 	tmp &= ~(CTRL_TE | CTRL_RE);
 	writel(tmp,base + CTRL);
@@ -37,10 +37,11 @@ uint32_t lpuart_init(void)
 uint32_t lpuart_putc(char c)
 {
 
-    while (!(readl( 0x5A060000+ STAT) & (1 << 22)))
+    uint64_t base = 0xFFFFFFFF5A060000;
+    while (!(readl( base+ STAT) & (1 << 22)))
         __asm__("nop");
 
-    writel(c, 0x5A060000 + DATA);
+    writel(c, base + DATA);
     return 0;
 }
 
@@ -53,16 +54,17 @@ void uart_init(void)
 {
 }
 
-void uart_putc(char c)
+int uart_putc(int port, char c)
 {
     lpuart_putc(c);
+    return 1;
 }
 
 void intc_init(void)
 {
 }
 
-char uart_getc(void)
+int uart_getc(int port, bool wait)
 {
-    return 0;
+    return -1;
 }

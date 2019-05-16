@@ -36,29 +36,36 @@
 #include <libfdt.h>
 #include <arch/arm64.h>
 #include <arch/arm64/mmu.h>
+#include <platform/imx8x.h>
 
 /* initial memory mappings. parsed by start.S */
-struct mmu_initial_mapping mmu_initial_mappings[] = {
- /* 1GB of sdram space */
- {
-     .phys = 0x80000000,
-     .virt = KERNEL_BASE,
-     .size = 1024*1024,
-     .flags = 0,
-     .name = "memory"
- },
+struct mmu_initial_mapping mmu_initial_mappings[] =
+{
+    {
+        .phys = 0x80000000,
+        .virt = 0xFFFF000000000000,
+        .size = (1024*1024*1024),
+        .flags = 0,
+        .name = "memory"
+    },
 
- /* peripherals */
- {
-     .phys = 0x40000000,
-     .virt = 0x40000000,
-     .size = 64*16*1024*1024,
-     .flags = MMU_INITIAL_MAPPING_FLAG_DEVICE,
-     .name = "imx8x peripherals"
- },
-
- /* null entry to terminate the list */
- { 0 }
+    /* Debug uart */
+    {
+        .phys = 0x5A060000,
+        .virt = 0xFFFFFFFF5A060000,
+        .size = (64*1024),
+        .flags = MMU_INITIAL_MAPPING_FLAG_DEVICE,
+        .name = "imx8x LPUART0"
+    },
+/*
+    {
+        .phys = 0x80000000,
+        .virt = 0xFFFF000080000000,
+        .size = (16*1024*1024),
+        .flags = MMU_INITIAL_MAPPING_TEMPORARY,
+    },*/
+    /* null entry to terminate the list */
+    { 0 }
 };
 
 #define DEBUG_UART 1
@@ -68,9 +75,9 @@ extern void arm_reset(void);
 
 
 static pmm_arena_t arena = {
-    .name = "sdram",
-    .base = 0x80000000, 
-    .size = MEMSIZE,
+    .name = "ram",
+    .base = 0x82000000, 
+    .size = (128*1024*1024),
     .flags = PMM_ARENA_FLAG_KMAP,
 };
 
@@ -85,7 +92,12 @@ void platform_early_init(void)
     intc_init();
 
     //arm_generic_timer_init(INTERRUPT_ARM_LOCAL_CNTPNSIRQ, 0);
+    //
 
+    /* add the main memory arena */
+    pmm_add_arena(&arena);
+
+    return;
    /* look for a flattened device tree just before the kernel */
     const void *fdt = (void *)KERNEL_BASE;
     int err = fdt_check_header(fdt);
