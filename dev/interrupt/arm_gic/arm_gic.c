@@ -39,7 +39,7 @@
 #include <lib/sm/sm_err.h>
 #endif
 
-#define LOCAL_TRACE 0
+#define LOCAL_TRACE 1
 
 #if ARCH_ARM
 #include <arch/arm.h>

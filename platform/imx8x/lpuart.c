@@ -66,5 +66,10 @@ void intc_init(void)
 
 int uart_getc(int port, bool wait)
 {
-    return -1;
+    uint64_t base = 0xFFFFFFFF5A060000;
+    uint32_t uart_data = readl( base+ DATA) ;
+    while (wait && (uart_data & (1 << 12)))
+        uart_data = readl( base+ DATA) ;
+
+    return (uart_data & 0xff);
 }

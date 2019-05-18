@@ -31,12 +31,18 @@
 #include <kernel/vm.h>
 #include <kernel/spinlock.h>
 #include <dev/timer/arm_generic.h>
+#include <dev/interrupt/arm_gic.h>
 #include <platform.h>
 #include <platform/interrupts.h>
+#include <lib/watchdog.h>
 #include <libfdt.h>
 #include <arch/arm64.h>
 #include <arch/arm64/mmu.h>
 #include <platform/imx8x.h>
+#include <platform/sci/ipc.h>
+#include <platform/sci/sci.h>
+
+sc_ipc_t ipc_handle;
 
 /* initial memory mappings. parsed by start.S */
 struct mmu_initial_mapping mmu_initial_mappings[] =
@@ -48,22 +54,31 @@ struct mmu_initial_mapping mmu_initial_mappings[] =
         .flags = 0,
         .name = "memory"
     },
-
+    /* MU1 */
+    {
+        .phys = 0x5D1b0000,
+        .virt = 0xFFFFFFFF5D1b0000,
+        .size = (64*1024),
+        .flags = MMU_INITIAL_MAPPING_FLAG_DEVICE,
+        .name = "SCU MU2"
+    },
     /* Debug uart */
     {
         .phys = 0x5A060000,
         .virt = 0xFFFFFFFF5A060000,
         .size = (64*1024),
         .flags = MMU_INITIAL_MAPPING_FLAG_DEVICE,
-        .name = "imx8x LPUART0"
+        .name = "LPUART0"
     },
-/*
+
     {
-        .phys = 0x80000000,
-        .virt = 0xFFFF000080000000,
+        .phys = 0x51a00000,
+        .virt = 0xFFFFFFFF51a00000,
         .size = (16*1024*1024),
-        .flags = MMU_INITIAL_MAPPING_TEMPORARY,
-    },*/
+        .flags = MMU_INITIAL_MAPPING_FLAG_DEVICE,
+        .name = "priv"
+    },
+
     /* null entry to terminate the list */
     { 0 }
 };
@@ -74,7 +89,8 @@ extern void intc_init(void);
 extern void arm_reset(void);
 
 
-static pmm_arena_t arena = {
+static pmm_arena_t arena =
+{
     .name = "ram",
     .base = 0x82000000, 
     .size = (128*1024*1024),
@@ -91,71 +107,25 @@ void platform_early_init(void)
 
     intc_init();
 
-    //arm_generic_timer_init(INTERRUPT_ARM_LOCAL_CNTPNSIRQ, 0);
-    //
+
+    sc_ipc_open(&ipc_handle, 0x5D1b0000);
+    
+    arm_gic_init();
+    
 
     /* add the main memory arena */
     pmm_add_arena(&arena);
 
-    return;
-   /* look for a flattened device tree just before the kernel */
-    const void *fdt = (void *)KERNEL_BASE;
-    int err = fdt_check_header(fdt);
-    if (err >= 0) {
-        /* walk the nodes, looking for 'memory' */
-        int depth = 0;
-        int offset = 0;
-        for (;;) {
-            offset = fdt_next_node(fdt, offset, &depth);
-            if (offset < 0)
-                break;
-
-            /* get the name */
-            const char *name = fdt_get_name(fdt, offset, NULL);
-            if (!name)
-                continue;
-
-            /* look for the 'memory' property */
-            if (strcmp(name, "memory") == 0) {
-                printf("Found memory in fdt\n");
-                int lenp;
-                const void *prop_ptr = fdt_getprop(fdt, offset, "reg", &lenp);
-                if (prop_ptr && lenp == 0x10) {
-                    /* we're looking at a memory descriptor */
-                    //uint64_t base = fdt64_to_cpu(*(uint64_t *)prop_ptr);
-                    uint64_t len = fdt64_to_cpu(*((const uint64_t *)prop_ptr + 1));
-
-                    /* trim size on certain platforms */
-
-                    /* set the size in the pmm arena */
-                    arena.size = len;
-                }
-            }
-        }
-    }
-
-
-    /* add the main memory arena */
-    pmm_add_arena(&arena);
-
-    /* reserve the first 64k of ram, which should be holding the fdt */
-    struct list_node list = LIST_INITIAL_VALUE(list);
-    pmm_alloc_range(MEMBASE, 0x80000 / PAGE_SIZE, &list);
-
-    uintptr_t sec_entry = (uintptr_t)(&arm_reset - KERNEL_ASPACE_BASE);
-    unsigned long long *spin_table = (void *)(KERNEL_ASPACE_BASE + 0xd8);
-
-    for (uint i = 1; i <= 3; i++) {
-        spin_table[i] = sec_entry;
-        __asm__ __volatile__ ("" : : : "memory");
-        arch_clean_cache_range(0xffff000000000000,256);
-        __asm__ __volatile__("sev");
-    }
 }
 
 void platform_init(void)
 {
     uart_init();
+
+    arm_generic_timer_init(13, 100);
+
+    watchdog_hw_init(1000);
+    watchdog_hw_set_enabled(true);
 }
 
 void platform_dputc(char c)
@@ -163,6 +133,7 @@ void platform_dputc(char c)
     if (c == '\n')
         uart_putc(DEBUG_UART, '\r');
     uart_putc(DEBUG_UART, c);
+
 }
 
 int platform_dgetc(char *c, bool wait)
@@ -171,6 +142,7 @@ int platform_dgetc(char *c, bool wait)
     if (ret == -1)
         return -1;
     *c = ret;
+
     return 0;
 }
 

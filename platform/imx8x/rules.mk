@@ -8,11 +8,21 @@ LK_HEAP_IMPLEMENTATION ?= dlmalloc
 
 MODULE_DEPS := \
 	dev/timer/arm_generic \
-	lib/cbuf
+    dev/interrupt/arm_gic \
+	lib/cbuf \
+	lib/watchdog
 
 MODULE_SRCS += \
 	$(LOCAL_DIR)/lpuart.c \
-	$(LOCAL_DIR)/platform.c
+	$(LOCAL_DIR)/wdog.c \
+	$(LOCAL_DIR)/platform.c \
+	$(LOCAL_DIR)/sci/mx8_mu.c \
+	$(LOCAL_DIR)/sci/ipc.c \
+	$(LOCAL_DIR)/sci/svc/misc/misc_rpc_clnt.c \
+	$(LOCAL_DIR)/sci/svc/pad/pad_rpc_clnt.c \
+	$(LOCAL_DIR)/sci/svc/pm/pm_rpc_clnt.c \
+	$(LOCAL_DIR)/sci/svc/rm/rm_rpc_clnt.c \
+	$(LOCAL_DIR)/sci/svc/timer/timer_rpc_clnt.c
 
 MEMBASE := 0x80000000
 
