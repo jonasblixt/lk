@@ -59,6 +59,7 @@ arm_reset:
     mrs     cpuid, mpidr_el1
     ubfx    cpuid, cpuid, #0, #SMP_CPU_ID_BITS
     cbnz    cpuid, .Lmmu_enable_secondary
+
 #endif
 
 
@@ -273,7 +274,6 @@ arm_reset:
     add     tmp, tmp, #:lo12:page_tables_not_ready
     str     wzr, [tmp]
     b       .Lpage_tables_ready
-
 .Lmmu_enable_secondary:
     adrp    tmp, page_tables_not_ready
     add     tmp, tmp, #:lo12:page_tables_not_ready

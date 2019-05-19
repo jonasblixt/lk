@@ -21,7 +21,7 @@ status_t platform_watchdog_init(lk_time_t  target_timeout,
 
     sc_timer_set_wdog_timeout(ipc_handle, target_timeout);
     sc_timer_set_wdog_action(ipc_handle,SC_RM_PT_ALL,
-                                        SC_TIMER_WDOG_ACTION_BOARD);
+                                        SC_TIMER_WDOG_ACTION_COLD);
     sc_timer_start_wdog(ipc_handle, true);
     
     return NO_ERROR;

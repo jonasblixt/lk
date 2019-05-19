@@ -29,7 +29,7 @@
 #include <platform/timer.h>
 #include <trace.h>
 
-#define LOCAL_TRACE 0
+#define LOCAL_TRACE 1
 
 #include <lib/fixed_point.h>
 

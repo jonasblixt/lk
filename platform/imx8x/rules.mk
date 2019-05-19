@@ -2,7 +2,7 @@ LOCAL_DIR := $(GET_LOCAL_DIR)
 
 MODULE := $(LOCAL_DIR)
 
-WITH_SMP := 0
+WITH_SMP := 1
 LK_HEAP_IMPLEMENTATION ?= dlmalloc
 
 
@@ -15,6 +15,7 @@ MODULE_DEPS := \
 MODULE_SRCS += \
 	$(LOCAL_DIR)/lpuart.c \
 	$(LOCAL_DIR)/wdog.c \
+    $(LOCAL_DIR)/secondary_boot.S \
 	$(LOCAL_DIR)/platform.c \
 	$(LOCAL_DIR)/sci/mx8_mu.c \
 	$(LOCAL_DIR)/sci/ipc.c \
@@ -25,9 +26,6 @@ MODULE_SRCS += \
 	$(LOCAL_DIR)/sci/svc/timer/timer_rpc_clnt.c
 
 MEMBASE := 0x80000000
-
-GLOBAL_DEFINES += \
-	ARM_ARCH_WAIT_FOR_SECONDARIES=0
 
 LINKER_SCRIPT += \
 	$(BUILDDIR)/system-onesegment.ld

@@ -56,8 +56,8 @@ struct mmu_initial_mapping mmu_initial_mappings[] =
     },
     /* MU1 */
     {
-        .phys = 0x5D1b0000,
-        .virt = 0xFFFFFFFF5D1b0000,
+        .phys = 0x5D1c0000,
+        .virt = 0xFFFFFFFF5D1c0000,
         .size = (64*1024),
         .flags = MMU_INITIAL_MAPPING_FLAG_DEVICE,
         .name = "SCU MU2"
@@ -101,6 +101,8 @@ void platform_init_mmu_mappings(void)
 {
 }
 
+extern void psci_call(ulong arg0, ulong arg1, ulong arg2, ulong arg3);
+
 void platform_early_init(void)
 {
     uart_init_early();
@@ -108,7 +110,7 @@ void platform_early_init(void)
     intc_init();
 
 
-    sc_ipc_open(&ipc_handle, 0x5D1b0000);
+    sc_ipc_open(&ipc_handle, 0x5D1c0000);
     
     arm_gic_init();
     
@@ -122,10 +124,31 @@ void platform_init(void)
 {
     uart_init();
 
-    arm_generic_timer_init(13, 100);
+    arm_generic_timer_init(14, 100);
 
     watchdog_hw_init(1000);
     watchdog_hw_set_enabled(true);
+
+
+    uint16_t lc;
+    uint16_t monotonic;
+    uint32_t uid[2];
+
+    sc_misc_seco_chip_info(ipc_handle, &lc, &monotonic, &uid[0], &uid[1]);
+
+    dprintf (SPEW, "%lu\n", current_time());
+    dprintf (SPEW, "IMX8X uid: %08x%08x\n",uid[0],uid[1]);
+    dprintf (SPEW, "%lu\n", current_time());
+
+
+
+    /* boot the secondary cpus using the Power State Coordintion Interface */
+    ulong psci_call_num = 0xC4000000 + 3; 
+
+    for (uint i = 1; i < SMP_MAX_CPUS; i++)
+    {
+        psci_call(psci_call_num, i, MEMBASE + KERNEL_LOAD_OFFSET, 0);
+    }
 }
 
 void platform_dputc(char c)
@@ -142,7 +165,6 @@ int platform_dgetc(char *c, bool wait)
     if (ret == -1)
         return -1;
     *c = ret;
-
     return 0;
 }
 

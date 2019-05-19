@@ -37,8 +37,11 @@ int clock_tests(int argc, const cmd_args *argv)
     lk_bigtime_t t2;
 
 #define CYCLE_COUNT_TRIES 1000000
+    printf ("Sleeping...\n");
     thread_sleep(100);
+    printf ("Done\n");
     c = arch_cycle_count();
+    printf ("cycles: %u\n",c);
     for (int i = 0; i < CYCLE_COUNT_TRIES; i++) {
         t = current_time();
     }
