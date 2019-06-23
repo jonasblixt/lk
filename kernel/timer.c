@@ -45,7 +45,7 @@
 #include <platform/timer.h>
 #include <platform.h>
 
-#define LOCAL_TRACE 1
+#define LOCAL_TRACE 0
 
 spin_lock_t timer_lock;
 

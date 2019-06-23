@@ -25,8 +25,8 @@
 
 #include <platform/imx8x.h>
 
-#define GICBASE(n)  (CPUPRIV_BASE)
-#define GICC_OFFSET (0x0100)
-#define GICD_OFFSET (0x1000)
+#define GICBASE(n)  (0xFFFFFFFF51a00000)
+#define GICC_OFFSET (0x1000)
+#define GICD_OFFSET (0x0)
 
 #endif

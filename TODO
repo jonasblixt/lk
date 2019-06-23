@@ -1,0 +1,16 @@
+
+
+
+1)
+- WDT
+- Get GIC working
+- Uart buffer / DMA
+- Run in EL2
+- PSCI calls
+    o Version
+    o Suspend
+    o CPU ON/OFF
+    o Reset?
+2)
+
+

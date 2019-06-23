@@ -93,10 +93,10 @@ void lk_init_level(enum lk_init_flags required_flag, uint start_level, uint stop
             break;
 
 #if TRACE_INIT
-        if (found->level >= EARLIEST_TRACE_LEVEL) {
+ /*       if (found->level >= EARLIEST_TRACE_LEVEL) {
             printf("INIT: cpu %d, calling hook %p (%s) at level %#x, flags %#x\n",
                    arch_curr_cpu_num(), found->hook, found->name, found->level, found->flags);
-        }
+        }*/
 #endif
         found->hook(found->level);
         last_called_level = found->level;

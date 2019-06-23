@@ -113,11 +113,17 @@ void platform_early_init(void)
     sc_ipc_open(&ipc_handle, 0x5D1c0000);
     
     arm_gic_init();
-    
 
     /* add the main memory arena */
     pmm_add_arena(&arena);
 
+    /* boot the secondary cpus using the Power State Coordintion Interface */
+    ulong psci_call_num = 0xC4000000 + 3; 
+
+    for (uint i = 1; i < SMP_MAX_CPUS; i++)
+    {
+        psci_call(psci_call_num, i, MEMBASE + KERNEL_LOAD_OFFSET, 0);
+    }
 }
 
 void platform_init(void)
@@ -136,19 +142,9 @@ void platform_init(void)
 
     sc_misc_seco_chip_info(ipc_handle, &lc, &monotonic, &uid[0], &uid[1]);
 
-    dprintf (SPEW, "%lu\n", current_time());
     dprintf (SPEW, "IMX8X uid: %08x%08x\n",uid[0],uid[1]);
-    dprintf (SPEW, "%lu\n", current_time());
+    dprintf (SPEW, "GIC ID: 0x%08x\n",readl(REG32(0xFFFFFFFF51a00008)));
 
-
-
-    /* boot the secondary cpus using the Power State Coordintion Interface */
-    ulong psci_call_num = 0xC4000000 + 3; 
-
-    for (uint i = 1; i < SMP_MAX_CPUS; i++)
-    {
-        psci_call(psci_call_num, i, MEMBASE + KERNEL_LOAD_OFFSET, 0);
-    }
 }
 
 void platform_dputc(char c)
